@@ -17,6 +17,11 @@
 | [字符串](problems/strings/README.md) | KMP、Trie、哈希、字符串处理等 |
 | [综合与其他](problems/misc/README.md) | 综合算法、思维题及暂未归类的题目 |
 
+## C++ 模板库
+
+- [C++ 常用模板总目录](templates/README.md)：按基础、数据结构、图论、字符串、数学、动态规划等分类。
+- [C++17 综合模板源码](templates/cpp17-template.cpp)：可按需复制的常用代码合集。
+
 ## 每道题的收录标准
 
 每道正式收录的题目尽量包含：
