@@ -23,7 +23,7 @@ using vi = vector<int>;
 using vll = vector<ll>;
 
 constexpr int INF = 0x3f3f3f3f;
-constexpr ll LINF = (1LL << 好);
+constexpr ll LINF = (1LL << 62);
 
 // 快速幂：计算 a^b % mod，要求 mod > 0、b >= 0。
 ll mod_pow(ll a, ll b, ll mod) {
