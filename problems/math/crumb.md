@@ -25,9 +25,9 @@
 
 ### 数据范围
 
-[
+\[
 1\le T\le 2\times 10^5,\qquad 1\le n,k\le 10^9
-]
+\]
 
 ## 二、核心转化
 
@@ -39,71 +39,71 @@
 
 由题意：
 
-[
+\[
 3x+y=k,\qquad x+y=m
-]
+\]
 
 两式相减：
 
-[
+\[
 2x=k-m\quad\Longrightarrow\quad m=k-2x
-]
+\]
 
 我们要让空盘子最少，也就是让非空盘子数 (m) 最大。因为 (m=k-2x)，所以等价于让 (x) 尽可能小。
 
 合法摆放还要求：
 
-[
+\[
 0\le x\le\left\lfloor\frac{k}{3}\right\rfloor
-]
+\]
 
 并且非空盘子不能超过总盘子数：
 
-[
+\[
 k-2x\le n
-]
+\]
 
 ## 三、做法一：数学公式（(O(1))）
 
 由 (k-2x\le n)，得到：
 
-[
+\[
 x\ge\left\lceil\frac{k-n}{2}\right\rceil
-]
+\]
 
 再结合 (x\ge0)，最小候选值为：
 
-[
+\[
 \boxed{x=\max\left(0,\left\lceil\frac{k-n}{2}\right\rceil\right)}
-]
+\]
 
 当 (k>n) 时，正整数的向上取整可用整数运算：
 
-[
+\[
 \left\lceil\frac{k-n}{2}\right\rceil
 =\frac{k-n+1}{2}
-]
+\]
 
 因此代码中：
 
-[
+\[
 x=\begin{cases}
 0,&k\le n\\
 (k-n+1)/2,&k>n
 \end{cases}
-]
+\]
 
 如果 (x>\lfloor k/3\rfloor)，说明即使尽量多使用 3 条装的盘子，也无法在 (n) 个盘子内放下恰好 (k) 条小鱼干，答案为 (-1)。
 
 否则：
 
-[
+\[
 m=k-2x
-]
+\]
 
-[
+\[
 \boxed{ans=n-m=n-k+2x}
-]
+\]
 
 ### C++ 代码
 
@@ -115,15 +115,15 @@ m=k-2x
 
 (x) 的取值范围是：
 
-[
+\[
 0\le x\le\left\lfloor\frac{k}{3}\right\rfloor
-]
+\]
 
 当确定 (x) 后，非空盘子数为 (m=k-2x)。我们需要满足：
 
-[
+\[
 k-2x\le n
-]
+\]
 
 观察这个条件：随着 (x) 增大，(k-2x) 单调减小。因此：
 
@@ -136,9 +136,9 @@ k-2x\le n
 
 找到最小可行 (x) 后，仍然计算：
 
-[
+\[
 ans=n-(k-2x)
-]
+\]
 
 ### C++ 代码
 
@@ -152,9 +152,9 @@ ans=n-(k-2x)
 
 合法的 (x) 必须满足：
 
-[
+\[
 0\le x\le\lfloor k/3\rfloor,\qquad k-2x\le n
-]
+\]
 
 公式做法直接求出满足第二个不等式的最小非负整数 (x)，再检查它是否不超过上界，因此得到的就是最优解；若超过上界，则不存在合法方案。
 
