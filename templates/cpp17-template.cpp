@@ -365,6 +365,147 @@ ll kruskal(int n, vector<Edge> edges, bool& connected) {
     return ans;
 }
 
+// 0-1 BFS：边权只能是 0 或 1；双端队列实现最短路。
+vector<int> zero_one_bfs(const vector<vector<pair<int,int>>>& g, int s) {
+    int n = (int)g.size() - 1;
+    vector<int> dist(n + 1, INF);
+    deque<int> dq;
+    dist[s] = 0;
+    dq.push_front(s);
+    while (!dq.empty()) {
+        int u = dq.front(); dq.pop_front();
+        for (auto [v, w] : g[u]) {
+            if (dist[v] > dist[u] + w) {
+                dist[v] = dist[u] + w;
+                if (w == 0) dq.push_front(v);
+                else dq.push_back(v);
+            }
+        }
+    }
+    return dist;
+}
+
+// Prim：稠密图或邻接表均可使用；这里为邻接表版本。
+// g[u] 存 (v,w)，无向图；不连通时 connected=false。
+ll prim(const vector<vector<pair<int,ll>>>& g, bool& connected, int s = 1) {
+    int n = (int)g.size() - 1;
+    vector<char> vis(n + 1, false);
+    priority_queue<pair<ll,int>, vector<pair<ll,int>>, greater<pair<ll,int>>> pq;
+    pq.push({0, s});
+    ll ans = 0;
+    int cnt = 0;
+    while (!pq.empty()) {
+        auto [w, u] = pq.top(); pq.pop();
+        if (vis[u]) continue;
+        vis[u] = true;
+        ans += w;
+        ++cnt;
+        for (auto [v, cost] : g[u])
+            if (!vis[v]) pq.push({cost, v});
+    }
+    connected = (cnt == n);
+    return ans;
+}
+
+// Tarjan 求有向图强连通分量 SCC。编号 1..n。
+// scc_id[u] 为 u 所属分量编号；分量编号按 Tarjan 出栈顺序生成。
+struct TarjanSCC {
+    int n, timer = 0, scc_cnt = 0;
+    vector<vector<int>> g;
+    vector<int> dfn, low, stk, in_stk, scc_id, scc_size;
+
+    TarjanSCC(int n) : n(n), g(n+1), dfn(n+1), low(n+1),
+        in_stk(n+1), scc_id(n+1) {}
+    void add_edge(int u, int v) { g[u].push_back(v); }
+    void dfs(int u) {
+        dfn[u] = low[u] = ++timer;
+        stk.push_back(u);
+        in_stk[u] = 1;
+        for (int v : g[u]) {
+            if (!dfn[v]) {
+                dfs(v);
+                low[u] = min(low[u], low[v]);
+            } else if (in_stk[v]) {
+                low[u] = min(low[u], dfn[v]);
+            }
+        }
+        if (low[u] == dfn[u]) {
+            ++scc_cnt;
+            int cnt = 0;
+            while (true) {
+                int v = stk.back(); stk.pop_back();
+                in_stk[v] = 0;
+                scc_id[v] = scc_cnt;
+                ++cnt;
+                if (v == u) break;
+            }
+            scc_size.push_back(cnt);
+        }
+    }
+    void run() {
+        for (int i = 1; i <= n; ++i)
+            if (!dfn[i]) dfs(i);
+    }
+};
+
+// Tarjan 求无向图桥与割点。注意用边编号处理重边。
+// bridge_ids 保存桥的边编号；is_cut[u] 表示 u 是割点。
+struct BridgeCut {
+    int n, timer = 0, edge_cnt = 0;
+    vector<vector<pair<int,int>>> g;
+    vector<int> dfn, low, is_cut, bridge_ids;
+
+    BridgeCut(int n) : n(n), g(n+1), dfn(n+1), low(n+1), is_cut(n+1) {}
+    void add_edge(int u, int v) {
+        ++edge_cnt;
+        g[u].push_back({v, edge_cnt});
+        g[v].push_back({u, edge_cnt});
+    }
+    void dfs(int u, int parent_edge = 0) {
+        dfn[u] = low[u] = ++timer;
+        int children = 0;
+        for (auto [v, id] : g[u]) {
+            if (id == parent_edge) continue;
+            if (!dfn[v]) {
+                ++children;
+                dfs(v, id);
+                low[u] = min(low[u], low[v]);
+                if (low[v] > dfn[u]) bridge_ids.push_back(id);
+                if (parent_edge && low[v] >= dfn[u]) is_cut[u] = 1;
+            } else {
+                low[u] = min(low[u], dfn[v]);
+            }
+        }
+        if (!parent_edge && children > 1) is_cut[u] = 1;
+    }
+    void run() {
+        for (int i = 1; i <= n; ++i)
+            if (!dfn[i]) dfs(i);
+    }
+};
+
+// 树的直径（边权非负时可用两次树遍历；无权树也适用）。
+// 返回最远点及距离；g 为无向树邻接表，节点 1..n。
+pair<int,ll> tree_farthest(const vector<vector<pair<int,ll>>>& g, int s) {
+    int n = (int)g.size() - 1;
+    vector<ll> dist(n + 1, -1);
+    vector<int> parent(n + 1, 0);
+    vector<int> st = {s};
+    dist[s] = 0;
+    while (!st.empty()) {
+        int u = st.back(); st.pop_back();
+        for (auto [v, w] : g[u]) if (v != parent[u]) {
+            parent[v] = u;
+            dist[v] = dist[u] + w;
+            st.push_back(v);
+        }
+    }
+    int best = s;
+    for (int i = 1; i <= n; ++i)
+        if (dist[i] > dist[best]) best = i;
+    return {best, dist[best]};
+}
+
 // ============================================================
 // 5. 树：LCA（二进制提升）
 // ============================================================
@@ -490,6 +631,31 @@ struct Trie {
             p = t[p].ch[x];
         }
         return t[p].terminal;
+    }
+};
+
+// 双模滚动哈希：用于快速比较子串哈希；哈希存在极低概率碰撞。
+// 下标 0-based，get(l,r) 查询闭区间 [l,r]。
+struct DoubleHash {
+    static constexpr ll mod1 = 1000000007LL, mod2 = 1000000009LL;
+    static constexpr ll base = 911382323LL;
+    vector<ll> h1, h2, p1, p2;
+    DoubleHash(const string& s) {
+        int n = (int)s.size();
+        h1.assign(n+1, 0); h2.assign(n+1, 0);
+        p1.assign(n+1, 1); p2.assign(n+1, 1);
+        for (int i = 0; i < n; ++i) {
+            int x = (unsigned char)s[i] + 1;
+            h1[i+1] = (h1[i] * base + x) % mod1;
+            h2[i+1] = (h2[i] * base + x) % mod2;
+            p1[i+1] = p1[i] * base % mod1;
+            p2[i+1] = p2[i] * base % mod2;
+        }
+    }
+    pair<ll,ll> get(int l, int r) const {
+        ll x = (h1[r+1] - h1[l] * p1[r-l+1] % mod1 + mod1) % mod1;
+        ll y = (h2[r+1] - h2[l] * p2[r-l+1] % mod2 + mod2) % mod2;
+        return {x, y};
     }
 };
 
